@@ -103,7 +103,7 @@ def download(link, newdevice, video, delete):
 
     print("File to send : {0}".format(recent_download))
 
-    pb = puskbullet.Pushbullet(api_key)
+    pb = pushbullet.Pushbullet(api_key)
     phone = device
 
     if newdevice:
