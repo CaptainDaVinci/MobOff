@@ -1,6 +1,5 @@
 #!usr/bin.python
 
-from pushbullet import Pushbullet
 from sys import version_info
 import pushbullet
 import glob
@@ -68,29 +67,24 @@ def download(link, newdevice, video, delete):
 
     os.chdir(directory)
 
-    if video is True:
-        downloadcommand = ["youtube-dl",
-                           "--metadata-from-title",
-                           "%(artist)s - %(title)s",
-                           "-f",
-                           "bestvideo+bestaudio",
-                           "--add-metadata",
-                           "--output",
-                           "%(artist)s - %(title)s.%(ext)s",
-                           link]
+    downloadcommand = ["youtube-dl",
+                       "--metadata-from-title",
+                       "\"%(artist)s - %(title)s\"",
+                       "\"%(artist)s - %(title)s.%(ext)s\"",
+                       "--add-metadata",
+                       "--output",
+                       link]
+    if video:
+        videoFlags = ["-f", "bestvideo+bestaudio"]
+        downloadcommand.extend(videoFlags)
     else:
-        downloadcommand = ["youtube-dl",
-                           "--metadata-from-title",
-                           "%(artist)s - %(title)s",
-                           "--extract-audio",
-                           "--audio-format",
-                           "mp3",
-                           "--audio-quality",
-                           "0",
-                           "--add-metadata",
-                           "--output",
-                           "%(artist)s - %(title)s.%(ext)s",
-                           link]
+        audioFlags = ["--extract-audio",
+                      "--audio-format",
+                      "mp3",
+                      "--audio-quality",
+                      "0"]
+
+        downloadcommand.extend(audioFlags)
 
     try:
         subprocess.check_output(downloadcommand, stderr=subprocess.STDOUT)
@@ -99,18 +93,17 @@ def download(link, newdevice, video, delete):
         quit()
 
     click.secho("File successfully downloaded.", fg="green", bold=True)
+
     types = ('*.mp3', '*.mp4', '*.mkv')
     list_of_files = []
     for files in types:
         list_of_files.extend(glob.glob(files))
 
-    recent_download = max(
-        list_of_files,
-        key=os.path.getctime)
+    recent_download = max(list_of_files, key=os.path.getctime)
 
     print("File to send : {0}".format(recent_download))
 
-    pb = Pushbullet(api_key)
+    pb = puskbullet.Pushbullet(api_key)
     phone = device
 
     if newdevice:
@@ -125,7 +118,7 @@ def download(link, newdevice, video, delete):
     print("Now sending the file to {0}".format(phone))
     pb.push_file(**file_data)
 
-    if(delete):
+    if delete:
         os.remove(recent_download)
 
 
@@ -143,7 +136,7 @@ def initialise():
     api_key = rawinput()
 
     try:
-        pb = Pushbullet(api_key)
+        pb = pushbullet.Pushbullet(api_key)
     except pushbullet.errors.InvalidKeyError:
         click.secho(
             "Please check your API key again. Run this command again and try.")
